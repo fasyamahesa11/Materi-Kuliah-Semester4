@@ -5,10 +5,11 @@ import {
   StyleSheet,
   Image,
   TextInput,
-  Button,
-  Switch,
   TouchableOpacity,
+  Switch,
+  Platform,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 
 export default function ProfilScreen() {
   const [name, setName] = useState('Nama Pengguna');
@@ -20,20 +21,29 @@ export default function ProfilScreen() {
   const toggleTheme = () => setDarkMode(!darkMode);
 
   return (
-    <View style={[styles.container, darkMode && styles.darkContainer]}>
-      <View style={styles.card}>
+    <LinearGradient
+      colors={darkMode ? ['#1e1e1e', '#000'] : ['#e0eafc', '#cfdef3']}
+      style={styles.container}
+    >
+      <View style={styles.themeSwitchContainer}>
+        <Text style={[styles.switchLabel, darkMode && { color: '#fff' }]}>Dark Mode</Text>
+        <Switch value={darkMode} onValueChange={toggleTheme} />
+      </View>
+
+      <View style={[styles.card, darkMode && styles.darkCard]}>
         <Image source={require('../assets/brandonline.png')} style={styles.avatar} />
+
         {editing ? (
           <>
             <TextInput
-              style={styles.input}
+              style={[styles.input, darkMode && styles.darkInput]}
               value={name}
               onChangeText={setName}
               placeholder="Nama"
               placeholderTextColor="#aaa"
             />
             <TextInput
-              style={styles.input}
+              style={[styles.input, darkMode && styles.darkInput]}
               value={email}
               onChangeText={setEmail}
               placeholder="Email"
@@ -46,34 +56,37 @@ export default function ProfilScreen() {
           </>
         ) : (
           <>
-            <Text style={styles.name}>{name}</Text>
-            <Text style={styles.email}>{email}</Text>
+            <Text style={[styles.name, darkMode && { color: '#fff' }]}>{name}</Text>
+            <Text style={[styles.email, darkMode && { color: '#aaa' }]}>{email}</Text>
             <TouchableOpacity style={styles.button} onPress={toggleEdit}>
               <Text style={styles.buttonText}>Edit Profil</Text>
             </TouchableOpacity>
           </>
         )}
-        <View style={styles.switchRow}>
-          <Text style={[styles.switchLabel, darkMode && { color: '#fff' }]}>Dark Mode</Text>
-          <Switch value={darkMode} onValueChange={toggleTheme} />
-        </View>
-        <TouchableOpacity style={[styles.button, styles.logoutButton]} onPress={() => alert('Logout Berhasil')}>
+
+        <TouchableOpacity
+          style={[styles.button, styles.logoutButton]}
+          onPress={() => alert('Logout berhasil')}
+        >
           <Text style={styles.buttonText}>Logout</Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f6f8fa',
-    justifyContent: 'center',
+    paddingTop: Platform.OS === 'android' ? 60 : 80,
     alignItems: 'center',
   },
-  darkContainer: {
-    backgroundColor: '#1e1e1e',
+  themeSwitchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    width: '90%',
+    marginBottom: 20,
   },
   card: {
     backgroundColor: '#fff',
@@ -83,18 +96,23 @@ const styles = StyleSheet.create({
     width: '90%',
     elevation: 4,
     shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 4 },
-    shadowRadius: 8,
+    shadowOpacity: 0.2,
+    shadowOffset: { width: 0, height: 6 },
+    shadowRadius: 10,
+  },
+  darkCard: {
+    backgroundColor: '#2a2a2a',
   },
   avatar: {
-    width: 100,
-    height: 100,
+    width: 110,
+    height: 110,
     borderRadius: 100,
-    marginBottom: 16,
+    borderWidth: 3,
+    borderColor: '#007bff',
+    marginBottom: 10,
   },
   name: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: '700',
     marginBottom: 4,
   },
@@ -110,6 +128,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#f0f0f0',
     marginBottom: 12,
     fontSize: 16,
+  },
+  darkInput: {
+    backgroundColor: '#444',
+    color: '#fff',
   },
   button: {
     backgroundColor: '#007bff',
@@ -127,15 +149,9 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: '600',
   },
-  switchRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '100%',
-    marginTop: 20,
-    alignItems: 'center',
-  },
   switchLabel: {
     fontSize: 16,
     fontWeight: '500',
+    marginRight: 10,
   },
 });
