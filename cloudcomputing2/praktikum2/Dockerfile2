@@ -1,0 +1,4 @@
+FROM ubuntu:20.04
+LABEL maintainer="mahasiswa@gmail.com"
+RUN apt-get update
+CMD ["echo", "ini adalah container2.."]
