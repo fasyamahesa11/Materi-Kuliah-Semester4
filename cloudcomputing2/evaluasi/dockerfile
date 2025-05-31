@@ -1,0 +1,6 @@
+FROM ubuntu:20.04
+LABEL maintainer="fasyamahesa011@gmail.com"
+RUN apt-get update
+WORKDIR /home/coba
+RUN echo "selamat datang di container evaluasi" > file.txt
+CMD ["echo", "SELAMAT DATANG DI HIMPUNAN MAHASISWA PROGRAM STUDI INFORMATIKA"]
