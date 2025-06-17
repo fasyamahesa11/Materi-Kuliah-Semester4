@@ -6,7 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 import HomeScreen from './screens/HomeScreen';
 import ProfilScreen from './screens/ProfilScreen';
-import InfoScreen from './screens/InfoScreen';
+import InfoScreen from './screens/SearchScreen';
 import DetailScreen from './screens/DetailScreen';
 import LoginScreen from './screens/LoginScreen';
 import FavScreen from './screens/FavScreen'; // import FavScreen
@@ -20,6 +20,7 @@ function HomeStack() {
     <Stack.Navigator>
       <Stack.Screen name="HomeScreen" component={HomeScreen} options={{ title: 'Beranda' }} />
       <Stack.Screen name="DetailScreen" component={DetailScreen} options={{ title: 'Detail Produk' }} />
+      <Stack.Screen name="FavoriteScreen" component={FavScreen} />
     </Stack.Navigator>
   );
 }

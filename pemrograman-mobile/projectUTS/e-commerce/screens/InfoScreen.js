@@ -15,28 +15,28 @@ const products = [
     name: 'Rangriti Blue Printed A-Line Dress',
     price: '₹1079',
     discount: '30% Off',
-    image: require('../assets/jeans.jpg'),
+    image: require('../assets/bag1.webp'),
   },
   {
     id: '2',
     name: 'GAP Purple Full Length Shirt Dress',
     price: '₹2098',
     discount: '30% Off',
-    image: require('../assets/kaospolos.jpg'),
+    image: require('../assets/bag2.webp'),
   },
   {
     id: '3',
     name: 'PlusS Mustard Floral Print Dress',
     price: '₹809',
     discount: '30% Off',
-    image: require('../assets/kaospolos.jpg'),
+    image: require('../assets/bag3.webp'),
   },
   {
     id: '4',
     name: 'PlusS Yellow Printed Below Knee Dress',
     price: '₹689',
     discount: '30% Off',
-    image: require('../assets/kaospolos.jpg'),
+    image: require('../assets/shoes1.webp'),
   },
 ];
 

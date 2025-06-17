@@ -3,12 +3,12 @@ import { initializeApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyA5khDcYqBraz-bj7Lmvgupo4ijmDETLlM",
-  authDomain: "restaurant-booking-f7fa6.firebaseapp.com",
-  projectId: "restaurant-booking-f7fa6",
-  storageBucket: "restaurant-booking-f7fa6.firebasestorage.appspot.com", // ⬅️ perbaiki domainnya
-  messagingSenderId: "179769023615",
-  appId: "1:179769023615:android:9ca7c98b3c9e087139b34a"
+  apiKey: "AIzaSyDiblRJR2o4ACMHP2pycelnzataXjFkAEA",
+  authDomain: "projectuas-947e8.firebaseapp.com",
+  projectId: "projectuas-947e8",
+  storageBucket: "projectuas-947e8.firebasestorage.app", // ⬅️ perbaiki domainnya
+  messagingSenderId: "548529702289",
+  appId: "1:548529702289:android:d0f80631030da6faaa8630"
 };
 
 const app = initializeApp(firebaseConfig);

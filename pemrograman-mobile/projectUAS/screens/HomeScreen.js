@@ -1,279 +1,685 @@
+import { db } from '../firebaseConfig';
+import { collection, doc, setDoc, deleteDoc, getDocs, serverTimestamp } from 'firebase/firestore';
+import React, { useState, useRef, useEffect } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Image,
+  TouchableOpacity,
+  ScrollView,
+  StatusBar,
+  Dimensions,
+  Alert,
+  Animated,
+  ActivityIndicator
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
-    import React, { useState } from 'react';
-    import {
-      View,
-      Text,
-      StyleSheet,
-      FlatList,
-      Image,
-      TouchableOpacity,
-      ScrollView,
-    } from 'react-native';
+// ================= DATA =================
+const bannerData = [
+  { id: '1', image: require('../assets/banner1.jpg') },
+  { id: '2', image: require('../assets/banner2.jpg') },
+  { id: '3', image: require('../assets/banner3.jpg') },
+  { id: '4', image: require('../assets/banner4-0000.jpg') },
+  { id: '5', image: require('../assets/banner-0000.jpg') },
+];
 
-    const allProducts = [
-      {
-        id: '1',
-        name: 'Petualang Hebat Si MOIS',
-        price: 'Rp 150.000',
-        category: 'Petualangan',
-        image: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=150&q=80',
-      },
-      {
-        id: '2',
-        name: 'Komik Sains Kuark',
-        price: 'Rp 100.000',
-        category: 'Sains',
-        image: 'https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&w=150&q=80',
-      },
-      {
-        id: '3',
-        name: 'Komik Si Juki Anak Kosan',
-        price: 'Rp 50.000',
-        category: 'Lucu',
-        image: 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=150&q=80',
-      },
-      {
-        id: '4',
-        name: 'Doraemon Petualangan',
-        price: 'Rp 70.000',
-        category: 'Petualangan',
-        image: 'https://images.unsplash.com/photo-1509228627152-5f6a134f9b45?auto=format&fit=crop&w=150&q=80',
-      },
-      {
-        id: '5',
-        name: 'Komik Naruto Vol.1',
-        price: 'Rp 85.000',
-        category: 'Petualangan',
-        image: 'https://images.unsplash.com/photo-1497493292307-31c376b6e479?auto=format&fit=crop&w=150&q=80',
-      },
-      {
-        id: '6',
-        name: 'Komik One Piece Vol.10',
-        price: 'Rp 90.000',
-        category: 'Petualangan',
-        image: 'https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?auto=format&fit=crop&w=150&q=80',
-      },
-      {
-        id: '7',
-        name: 'Komik Sains Astrofisika',
-        price: 'Rp 110.000',
-        category: 'Sains',
-        image: 'https://images.unsplash.com/photo-1494526585095-c41746248156?auto=format&fit=crop&w=150&q=80',
-      },
-      {
-        id: '8',
-        name: 'Petualangan di Hutan',
-        price: 'Rp 120.000',
-        category: 'Petualangan',
-        image: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=150&q=80',
-      },
-      {
-        id: '9',
-        name: 'Komik Lucu Si Bebek',
-        price: 'Rp 45.000',
-        category: 'Lucu',
-        image: 'https://images.unsplash.com/photo-1527252691053-8b4f64722023?auto=format&fit=crop&w=150&q=80',
-      },
-      {
-        id: '10',
-        name: 'Sains untuk Anak',
-        price: 'Rp 95.000',
-        category: 'Sains',
-        image: 'https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?auto=format&fit=crop&w=150&q=80',
-      },
-      {
-        id: '11',
-        name: 'Petualangan di Laut',
-        price: 'Rp 130.000',
-        category: 'Petualangan',
-        image: 'https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=150&q=80',
-      },
-      {
-        id: '12',
-        name: 'Komik Sains Biologi',
-        price: 'Rp 105.000',
-        category: 'Sains',
-        image: 'https://images.unsplash.com/photo-1523958203904-cdcb402031af?auto=format&fit=crop&w=150&q=80',
-      },
-      {
-        id: '13',
-        name: 'Si Juki Lagi',
-        price: 'Rp 55.000',
-        category: 'Lucu',
-        image: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=150&q=80',
-      },
-      {
-        id: '14',
-        name: 'Petualangan di Gunung',
-        price: 'Rp 140.000',
-        category: 'Petualangan',
-        image: 'https://images.unsplash.com/photo-1470770841072-f978cf4d019e?auto=format&fit=crop&w=150&q=80',
-      },
-      {
-        id: '15',
-        name: 'Komik Sains Fisika',
-        price: 'Rp 115.000',
-        category: 'Sains',
-        image: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=150&q=80',
-      },
-      {
-        id: '16',
-        name: 'Komik Lucu Anak Kampus',
-        price: 'Rp 60.000',
-        category: 'Lucu',
-        image: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=150&q=80',
-      },
-      {
-        id: '17',
-        name: 'Petualangan di Gurun',
-        price: 'Rp 135.000',
-        category: 'Petualangan',
-        image: 'https://images.unsplash.com/photo-1501769214405-5e9c7b3b0b62?auto=format&fit=crop&w=150&q=80',
-      },
-      {
-        id: '18',
-        name: 'Komik Sains Kimia',
-        price: 'Rp 120.000',
-        category: 'Sains',
-        image: 'https://images.unsplash.com/photo-1532635223-bc79b6e29e94?auto=format&fit=crop&w=150&q=80',
-      },
-      {
-        id: '19',
-        name: 'Si Juki Lagi Seru',
-        price: 'Rp 65.000',
-        category: 'Lucu',
-        image: 'https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&fit=crop&w=150&q=80',
-      },
-      {
-        id: '20',
-        name: 'Petualangan di Pulau',
-        price: 'Rp 145.000',
-        category: 'Petualangan',
-        image: 'https://images.unsplash.com/photo-1506748686214-e9df14d4d9d0?auto=format&fit=crop&w=150&q=80',
-      },
-    ];
+const allProducts = [
+  {
+    id: '1',
+    name: 'Merino Wool Brushed Tuck Stitch Keyhole Polo White',
+    brand: 'Thom Browne',
+    price: 'Rp 10.500.000',
+    originalPrice: 'Rp 13.750.000',
+    category: 'Clothing',
+    image: require('../assets/clothing1.webp'),
+    isNew: true,
+    isSale: true,
+    discount: '20% OFF'
+  },
+  {
+    id: '2',
+    name: 'Triophe Teddy Jacket In Double Face Cashmere Navy',
+    brand: 'Celine',
+    price: 'Rp 40.500.000',
+    category: 'Clothing',
+    image: require('../assets/clothing2.webp'),
+    isNew: false,
+    isSale: false
+  },
+  {
+    id: '3',
+    name: 'Drava Reversible Water Repellent Canvas',
+    brand: 'Max Mora',
+    price: 'Rp 5.250.000',
+    originalPrice: 'Rp 11.500.000',
+    category: 'Clothing',
+    image: require('../assets/clothing3.webp'),
+    isNew: true,
+    isSale: true,
+    discount: '15% OFF'
+  },
+  {
+    id: '4',
+    name: 'Check Cotton Shirt Dress Husk',
+    brand: 'Burberry',
+    price: 'Rp 11.000.000',
+    category: 'Clothing',
+    image: require('../assets/clothing4.webp'),
+    isNew: true,
+    isSale: false
+  },
+  {
+    id: '5',
+    name: 'Draped Trousers in Wool Light Grey',
+    brand: 'Loewey',
+    price: 'Rp 9.250.000',
+    originalPrice: 'Rp 11.500.000',
+    category: 'Clothing',
+    image: require('../assets/clothing5.webp'),
+    isNew: true,
+    isSale: true,
+    discount: '15% OFF'
+  },
+  {
+    id: '6',
+    name: 'OnTheGo East West Tote Bag Black GHW',
+    brand: 'Louis Vuitton',
+    price: 'Rp 51.500.000',
+    category: 'Bags',
+    image: require('../assets/bag7.webp'),
+    isNew: false,
+    isSale: false
+  },
+  {
+    id: '7',
+    name: 'Stella Ryder Shoulder Bag black',
+    brand: 'Stella McCartney',
+    price: 'Rp 10.000.000',
+    originalPrice: 'Rp 12.750.000',
+    category: 'Bags',
+    image: require('../assets/bag6.webp'),
+    isNew: true,
+    isSale: true,
+    discount: '20% OFF'
+  },
+  {
+    id: '8',
+    name: 'Numero Neuf Mini Crossbody Bag',
+    brand: 'Polene',
+    price: 'Rp 3.000.000',
+    originalPrice: 'Rp 3.750.000',
+    category: 'Bags',
+    image: require('../assets/bag4.webp'),
+    isNew: true,
+    isSale: true,
+    discount: '20% OFF'
+  },
+  {
+    id: '9',
+    name: 'Body Bag Flat Pocket Shoulder',
+    brand: 'CHARLES & KEITH',
+    price: 'Rp 3.000.000',
+    originalPrice: 'Rp 3.750.000',
+    category: 'Bags',
+    image: require('../assets/bag2.webp'),
+    isNew: true,
+    isSale: true,
+    discount: '20% OFF'
+  },
+  {
+    id: '10',
+    name: 'Interlocking G 75 Leather Sandal Brown',
+    brand: 'Gucci',
+    price: 'Rp 3.000.000',
+    originalPrice: 'Rp 10.750.000',
+    category: 'Shoes',
+    image: require('../assets/shoes1.webp'),
+    isNew: true,
+    isSale: true,
+    discount: '20% OFF'
+  },
+  {
+    id: '11',
+    name: 'Oasis 50mm Leather Sandal Brown',
+    brand: 'Hermes',
+    price: 'Rp 9.000.000',
+    originalPrice: 'Rp 10.750.000',
+    category: 'Shoes',
+    image: require('../assets/shoes2.webp'),
+    isNew: true,
+    isSale: true,
+    discount: '20% OFF'
+  },
+  {
+    id: '12',
+    name: 'Horsebit Sacchetto Ballet Flat Rosso Ancora',
+    brand: 'Gucci',
+    price: 'Rp 11.500.000',
+    category: 'Shoes',
+    image: require('../assets/shoes3.webp'),
+    isNew: false,
+    isSale: false
+  },
+  {
+    id: '13',
+    name: 'Vennera 20 Pattent Calfskin Pumps',
+    brand: 'Ferragamo',
+    price: 'Rp 9.500.000',
+    category: 'Shoes',
+    image: require('../assets/shoes4.webp'),
+    isNew: false,
+    isSale: false
+  },
+  {
+    id: '14',
+    name: 'Intricate Details Gancini Slide Gold',
+    brand: 'Ferragamo',
+    price: 'Rp 9.000.000',
+    category: 'Shoes',
+    image: require('../assets/shoes5.webp'),
+    isNew: false,
+    isSale: false
+  },
+  {
+    id: '15',
+    name: 'Pochette Metis East Manogram Shoulder Bag Brown',
+    brand: 'Louis Vuitton',
+    price: 'Rp 3.000.000',
+    originalPrice: 'Rp 3.750.000',
+    category: 'Bags',
+    image: require('../assets/bag10.webp'),
+    isNew: true,
+    isSale: true,
+    discount: '20% OFF'
+  },
+  {
+    id: '16',
+    name: 'Numero Dix Half Moon Croosobody Bag',
+    brand: 'Polene',
+    price: 'Rp 8.800.000',
+    category: 'Bags',
+    image: require('../assets/bag9.webp'),
+    isNew: false,
+    isSale: false
+  },
+];
 
-    const categories = ['Semua', 'Petualangan', 'Sains', 'Lucu'];
+const categories = ['All', 'Bags', 'Shoes', 'Clothing', 'Accessories'];
 
-    export default function HomeScreen({ navigation }) {
-      const [selectedCategory, setSelectedCategory] = useState('Semua');
+// ================= BANNER COMPONENT =================
+const BannerSlider = ({ handleShopNow }) => {
+  const { width } = Dimensions.get('window');
+  const scrollX = useRef(new Animated.Value(0)).current;
+  const flatListRef = useRef();
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const intervalRef = useRef();
 
-      const filteredProducts =
-        selectedCategory === 'Semua'
-          ? allProducts
-          : allProducts.filter((p) => p.category === selectedCategory);
+  const startAutoScroll = () => {
+    intervalRef.current = setInterval(() => {
+      const nextIndex = (currentIndex + 1) % bannerData.length;
+      flatListRef.current?.scrollToIndex({ index: nextIndex, animated: true });
+      setCurrentIndex(nextIndex);
+    }, 3000);
+  };
 
-      return (
-        <ScrollView contentContainerStyle={styles.container}>
-          <Text style={styles.title}>Selamat Datang di TOKO KOMIK!</Text>
+  useEffect(() => {
+    startAutoScroll();
+    return () => clearInterval(intervalRef.current);
+  }, [currentIndex]);
 
-          <View style={styles.categoryContainer}>
-            {categories.map((cat) => (
-              <TouchableOpacity
-                key={cat}
-                style={[
-                  styles.categoryBox,
-                  selectedCategory === cat && styles.categoryBoxActive,
-                ]}
-                onPress={() => setSelectedCategory(cat)}
+  const handleScroll = Animated.event(
+    [{ nativeEvent: { contentOffset: { x: scrollX } } }],
+    { useNativeDriver: false }
+  );
+
+  const onMomentumScrollEnd = (e) => {
+    const contentOffset = e.nativeEvent.contentOffset.x;
+    const index = Math.round(contentOffset / width);
+    setCurrentIndex(index);
+    clearInterval(intervalRef.current);
+    startAutoScroll();
+  };
+
+  return (
+    <View style={styles.bannerContainer}>
+      <Animated.FlatList
+        ref={flatListRef}
+        data={bannerData}
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
+        onMomentumScrollEnd={onMomentumScrollEnd}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => (
+          <View style={{ width }}>
+            <Image 
+              source={item.image} 
+              style={styles.bannerImage} 
+              resizeMode="cover"
+            />
+            <View style={styles.bannerOverlay}>
+              <Text style={styles.bannerText}>New Collection 2025</Text>
+              <TouchableOpacity 
+                style={styles.bannerButton} 
+                onPress={handleShopNow}
               >
-                <Text
-                  style={[
-                    styles.categoryText,
-                    selectedCategory === cat && styles.categoryTextActive,
-                  ]}
-                >
-                  {cat}
-                </Text>
+                <Text style={styles.bannerButtonText}>SHOP NOW</Text>
+                <Ionicons name="arrow-forward" size={14} color="#000" />
               </TouchableOpacity>
-            ))}
+            </View>
           </View>
+        )}
+      />
 
-          <Text style={styles.subtitle}>Komik Kategori: {selectedCategory}</Text>
+      <View style={styles.indicatorContainer}>
+        {bannerData.map((_, i) => {
+          const opacity = scrollX.interpolate({
+            inputRange: [(i - 1) * width, i * width, (i + 1) * width],
+            outputRange: [0.3, 1, 0.3],
+            extrapolate: 'clamp',
+          });
+          return (
+            <Animated.View 
+              key={i} 
+              style={[styles.indicatorDot, { opacity }]} 
+            />
+          );
+        })}
+      </View>
+    </View>
+  );
+};
 
-          <FlatList
-            data={filteredProducts}
-            keyExtractor={(item) => item.id}
-            numColumns={5} // buat grid 2 kolom
-            showsVerticalScrollIndicator={false}
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                style={styles.productCard}
-                onPress={() => navigation.navigate('DetailScreen', { product: item })}
-              >
-                <Image source={{ uri: item.image }} style={styles.productImage} />
-                <Text style={styles.productName}>{item.name}</Text>
-                <Text style={styles.productPrice}>{item.price}</Text>
-              </TouchableOpacity>
-            )}
-          />
-        </ScrollView>
-      );
+// ================= MAIN COMPONENT =================
+export default function HomeScreen({ navigation }) {
+  const { width } = Dimensions.get('window');
+  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [favorites, setFavorites] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const scrollViewRef = useRef();
+  const CARD_WIDTH = (width - 48) / 2;
+
+  useEffect(() => {
+    const loadFavorites = async () => {
+      try {
+        const querySnapshot = await getDocs(collection(db, 'favorites'));
+        const favs = querySnapshot.docs.map(doc => doc.data().productId);
+        setFavorites(favs);
+      } catch (error) {
+        Alert.alert('Error', 'Gagal memuat favorit');
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadFavorites();
+  }, []);
+
+  const toggleFavorite = async (product) => {
+    try {
+      const docRef = doc(db, 'favorites', product.id);
+      
+      if (favorites.includes(product.id)) {
+        await deleteDoc(docRef);
+        setFavorites(favorites.filter(id => id !== product.id));
+      } else {
+        await setDoc(docRef, {
+          productId: product.id,
+          name: product.name,
+          image: product.image, 
+          price: product.price,
+          brand: product.brand,
+          createdAt: serverTimestamp(),
+        });
+        setFavorites([...favorites, product.id]);
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Gagal memperbarui favorit');
     }
+  };
 
-    const styles = StyleSheet.create({
-      container: {
-        padding: 20,
-        paddingBottom: 60,
-        flexGrow: 1,
-      },
-      title: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        marginBottom: 15,
-        color: '#333',
-      },
-      subtitle: {
-        fontSize: 18,
-        fontWeight: '600',
-        marginVertical: 15,
-        color: '#0a84ff',
-      },
-      categoryContainer: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginBottom: 10,
-      },
-      categoryBox: {
-        backgroundColor: '#f0f4f7',
-        paddingVertical: 10,
-        paddingHorizontal: 15,
-        borderRadius: 8,
-        marginRight: 10,
-      },
-      categoryBoxActive: {
-        backgroundColor: '#0a84ff',
-      },
-      categoryText: {
-        fontWeight: '600',
-        color: '#555',
-      },
-      categoryTextActive: {
-        color: '#fff',
-      },
-      productCard: {
-        backgroundColor: '#fff',
-        borderRadius: 10,
-        padding: 10,
-        margin: 8,
-        flex: 1, // supaya fleksibel di grid
-        maxWidth: '47%', // agar 2 kolom dengan jarak
-        elevation: 3,
-      },
-      productImage: {
-        width: '100%',
-        height: 130,
-        borderRadius: 10,
-        backgroundColor: '#ccc',
-      },
-      productName: {
-        marginTop: 10,
-        fontWeight: '600',
-        color: '#333',
-      },
-      productPrice: {
-        color: 'green',
-        marginTop: 5,
-        fontWeight: '500',
-      },
-    });
+  const filteredProducts = selectedCategory === 'All'
+    ? allProducts
+    : allProducts.filter(p => p.category === selectedCategory);
+
+  const handleShopNow = () => {
+    setSelectedCategory('All');
+    scrollViewRef.current?.scrollTo({ y: 300, animated: true });
+  };
+
+  const handleSearchPress = () => {
+    navigation.navigate('Search', { allProducts });
+  };
+
+  const ProductCard = ({ item }) => (
+    <TouchableOpacity
+      style={[styles.productCard, { width: CARD_WIDTH }]}
+      onPress={() => navigation.navigate('DetailScreen', { product: item })}
+    >
+      <View style={[styles.imageContainer, { height: CARD_WIDTH }]}>
+        <Image 
+          source={item.image} 
+          style={styles.productImage} 
+          resizeMode="contain"
+        />
+        <View style={styles.badgeContainer}>
+          {item.isNew && (
+            <View style={[styles.badge, styles.newBadge]}>
+              <Text style={styles.badgeText}>NEW</Text>
+            </View>
+          )}
+          {item.isSale && (
+            <View style={[styles.badge, styles.saleBadge]}>
+              <Text style={styles.badgeText}>{item.discount}</Text>
+            </View>
+          )}
+        </View>
+        <TouchableOpacity 
+          style={styles.wishlistButton} 
+          onPress={() => toggleFavorite(item)}
+        >
+          <Ionicons 
+            name={favorites.includes(item.id) ? "heart" : "heart-outline"} 
+            size={18} 
+            color={favorites.includes(item.id) ? "#e0245e" : "#333"} 
+          />
+        </TouchableOpacity>
+      </View>
+      <View style={styles.productInfo}>
+        <Text style={styles.brandText}>{item.brand}</Text>
+        <Text style={styles.productName} numberOfLines={2}>{item.name}</Text>
+        <View style={styles.priceContainer}>
+          <Text style={styles.productPrice}>{item.price}</Text>
+          {item.originalPrice && (
+            <Text style={styles.originalPrice}>{item.originalPrice}</Text>
+          )}
+        </View>
+      </View>
+    </TouchableOpacity>
+  );
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#000" />
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+      
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Viola.Stylist</Text>
+        <View style={styles.headerIcons}>
+          <TouchableOpacity onPress={handleSearchPress}>
+            <Ionicons name="search" size={22} style={styles.icon} />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation.navigate('FavScreen', { favorites })}>
+            <Ionicons name="heart" size={22} style={styles.icon} />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation.navigate('Cart')}>
+            <Ionicons name="cart-outline" size={22} style={styles.icon} />
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      <ScrollView
+        ref={scrollViewRef}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContainer}
+      >
+        <BannerSlider handleShopNow={handleShopNow} />
+
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.categoryContainer}
+        >
+          {categories.map((cat) => (
+            <TouchableOpacity
+              key={cat}
+              style={[
+                styles.categoryBox,
+                selectedCategory === cat && styles.categoryBoxActive,
+              ]}
+              onPress={() => setSelectedCategory(cat)}
+            >
+              <Text style={[
+                styles.categoryText,
+                selectedCategory === cat && styles.categoryTextActive,
+              ]}>
+                {cat}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+
+        <View style={styles.productGrid}>
+          {filteredProducts.map((item) => (
+            <ProductCard key={item.id} item={item} />
+          ))}
+        </View>
+      </ScrollView>
+    </View>
+  );
+}
+
+// ================= STYLESHEET =================
+const { width } = Dimensions.get('window');
+const CARD_WIDTH = (width - 48) / 2;
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+  },
+  scrollContainer: {
+    paddingBottom: 30,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 20,
+    paddingTop: 16,
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#f5f5f5',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  headerTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#222',
+    letterSpacing: 0.5,
+  },
+  headerIcons: {
+    flexDirection: 'row',
+    gap: 18,
+  },
+  icon: {
+    color: '#333',
+  },
+  bannerContainer: {
+    height: 200,
+    marginBottom: 20,
+  },
+  bannerImage: {
+    width: width,
+    height: 200,
+  },
+  bannerOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    padding: 24,
+    backgroundColor: 'rgba(0,0,0,0.3)',
+  },
+  bannerText: {
+    color: '#fff',
+    fontSize: 22,
+    fontWeight: '600',
+    marginBottom: 12,
+  },
+  bannerButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    paddingVertical: 8,
+    paddingHorizontal: 20,
+    backgroundColor: '#fff',
+    borderRadius: 20,
+  },
+  bannerButtonText: {
+    color: '#000',
+    fontWeight: '600',
+    fontSize: 14,
+    marginRight: 4,
+  },
+  indicatorContainer: {
+    position: 'absolute',
+    bottom: 20,
+    flexDirection: 'row',
+    alignSelf: 'center',
+  },
+  indicatorDot: {
+    height: 6,
+    width: 6,
+    borderRadius: 3,
+    backgroundColor: '#fff',
+    marginHorizontal: 3,
+  },
+  categoryContainer: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+  },
+  categoryBox: {
+    paddingHorizontal: 18,
+    paddingVertical: 8,
+    borderRadius: 16,
+    marginRight: 8,
+    backgroundColor: '#f8f8f8',
+  },
+  categoryBoxActive: {
+    backgroundColor: '#000',
+  },
+  categoryText: {
+    fontWeight: '500',
+    fontSize: 14,
+    color: '#666',
+  },
+  categoryTextActive: {
+    color: '#fff',
+  },
+  productGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+  },
+  productCard: {
+    marginBottom: 16,
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  imageContainer: {
+    backgroundColor: '#f9f9f9',
+    position: 'relative',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  productImage: {
+    width: '80%',
+    height: '80%',
+  },
+  badgeContainer: {
+    position: 'absolute',
+    top: 10,
+    left: 10,
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    gap: 6,
+  },
+  badge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 4,
+  },
+  newBadge: {
+    backgroundColor: '#ff4444',
+  },
+  saleBadge: {
+    backgroundColor: '#333',
+  },
+  badgeText: {
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: 'bold',
+  },
+  wishlistButton: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    backgroundColor: 'rgba(255,255,255,0.8)',
+    borderRadius: 20,
+    width: 28,
+    height: 28,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  productInfo: {
+    padding: 12,
+  },
+  brandText: {
+    fontSize: 11,
+    color: '#888',
+    fontWeight: '600',
+    marginBottom: 4,
+    textTransform: 'uppercase',
+  },
+  productName: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#333',
+    marginBottom: 8,
+    lineHeight: 18,
+  },
+  priceContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  productPrice: { 
+    color: '#000',
+    fontWeight: '700',
+    fontSize: 14,
+  },
+  originalPrice: {
+    color: '#999',
+    fontWeight: '400',
+    fontSize: 12,
+    textDecorationLine: 'line-through',
+  },
+});

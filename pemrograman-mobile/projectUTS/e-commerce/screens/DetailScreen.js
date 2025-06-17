@@ -1,29 +1,33 @@
 import React from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
+import { View, Text, Image, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 
-export default function DetailScreen({ route, navigation }) {
+export default function DetailScreen({ route }) {
   const { product } = route.params;
+
+  const handleAddToBag = () => {
+    Alert.alert('Berhasil', `${product.name} berhasil ditambahkan ke bag!`);
+  };
+
+  const handleChatCS = () => {
+    Alert.alert('Chat CS', 'Menghubungkan dengan customer service...');
+  };
 
   return (
     <View style={styles.container}>
       <Image source={product.image} style={styles.image} />
-      <View style={styles.infoContainer}>
-        <Text style={styles.name}>{product.name}</Text>
-        <Text style={styles.price}>{product.price}</Text>
-        <Text style={styles.description}>short description</Text>
-        <Text style={styles.discount}>(40%)</Text>
-      </View>
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.button}>
-          <Text>ADD TO BAG</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.button, styles.buyButton]}
-          onPress={() => navigation.navigate('CartScreen', { product })}
-        >
-          <Text style={{ color: '#fff' }}>BUY NOW</Text>
-        </TouchableOpacity>
-      </View>
+      <Text style={styles.name}>{product.name}</Text>
+      <Text style={styles.price}>Rp 2.999.000</Text>
+      <Text style={styles.desc}>
+        Tas elegan cocok untuk berbagai acara. Material kulit sintetis premium.
+      </Text>
+
+      <TouchableOpacity style={styles.button} onPress={handleAddToBag}>
+        <Text style={styles.buttonText}>Add to Bag</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity style={styles.chat} onPress={handleChatCS}>
+        <Text style={styles.chatText}>Chat CS</Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -38,42 +42,43 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 300,
     resizeMode: 'contain',
-  },
-  infoContainer: {
-    marginTop: 20,
+    borderRadius: 12,
   },
   name: {
-    fontSize: 18,
+    fontSize: 24,
     fontWeight: 'bold',
+    marginVertical: 10,
   },
   price: {
-    fontSize: 16,
-    marginTop: 5,
+    fontSize: 18,
+    color: '#8B5E3C',
+    marginBottom: 10,
   },
-  description: {
-    color: 'gray',
-    marginTop: 10,
-  },
-  discount: {
-    marginTop: 5,
-    color: 'green',
-    fontWeight: '600',
-  },
-  buttonContainer: {
-    flexDirection: 'row',
-    marginTop: 30,
-    justifyContent: 'space-between',
+  desc: {
+    fontSize: 14,
+    color: '#444',
+    marginBottom: 20,
   },
   button: {
-    flex: 1,
+    backgroundColor: '#8B5E3C',
     padding: 15,
-    borderRadius: 5,
-    backgroundColor: '#eee',
+    borderRadius: 10,
     alignItems: 'center',
-    marginRight: 10,
+    marginBottom: 10,
   },
-  buyButton: {
-    backgroundColor: '#d81b60',
-    marginRight: 0,
+  buttonText: {
+    color: '#fff',
+    fontWeight: '600',
+  },
+  chat: {
+    borderColor: '#8B5E3C',
+    borderWidth: 1.5,
+    padding: 15,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  chatText: {
+    color: '#8B5E3C',
+    fontWeight: '600',
   },
 });

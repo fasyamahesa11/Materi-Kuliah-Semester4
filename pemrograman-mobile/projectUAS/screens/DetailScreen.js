@@ -3,25 +3,20 @@ import {
   View,
   Text,
   Image,
-  StyleSheet,
   TouchableOpacity,
   ScrollView,
   Alert,
   Modal,
   TextInput,
   ActivityIndicator,
+  Dimensions,
+  StyleSheet
 } from 'react-native';
-
+import { Ionicons } from '@expo/vector-icons';
 import { db } from '../firebaseConfig';
-import {
-  collection,
-  addDoc,
-  serverTimestamp,
-  doc,
-  setDoc,
-  getDoc,
-  deleteDoc,
-} from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, doc, setDoc, getDoc, deleteDoc } from 'firebase/firestore';
+
+const { width } = Dimensions.get('window');
 
 export default function DetailScreen({ route, navigation }) {
   const { product } = route.params;
@@ -32,16 +27,40 @@ export default function DetailScreen({ route, navigation }) {
   const [phone, setPhone] = useState('');
   const [address, setAddress] = useState('');
   const [loading, setLoading] = useState(false);
-  const stock = 10; // contoh stok
+  const stock = 10;
 
-  const description =
-    'Komik ini menceritakan petualangan seru dan penuh kejutan. Cocok untuk semua usia dan pecinta cerita menarik.';
-  const reviews = [
-    { id: 1, user: 'Andi', comment: 'Komik yang sangat menarik dan menghibur!' },
-    { id: 2, user: 'Sari', comment: 'Ilustrasi dan cerita sangat bagus.' },
-  ];
+  // Product descriptions based on category or product ID
+  const productDescriptions = {
+    default: `Premium quality product from ${product.brand}. This item features excellent craftsmanship and attention to detail.`,
+    polo: `Inspired by East Coast preppy icons, this airy cotton polo is a sophisticated take on a classic silhouette. Features include:
+    - Partial Front button placket
+    - Spread polo collar
+    - Name tag applique above hem
+    - Button side vents with grosgrain trim
+    - Signature striped grosgrain loop tab`,
+    shirt: `This premium shirt from ${product.brand} offers exceptional comfort and style. Features:
+    - 100% high-quality cotton
+    - Button-down collar
+    - Single chest pocket
+    - Classic fit
+    - Machine washable`,
+    pants: `Tailored for comfort and style, these ${product.brand} pants feature:
+    - Stretch fabric for mobility
+    - Multiple pocket options
+    - Adjustable waist
+    - Wrinkle-resistant material
+    - Perfect for both casual and formal occasions`
+  };
 
-  // Cek apakah produk favorit di Firestore
+  // Get the appropriate description for the product
+  const getProductDescription = () => {
+    // You can use product.id or product.category to determine the description
+    if (productDescriptions[product.category.toLowerCase()]) {
+      return productDescriptions[product.category.toLowerCase()];
+    }
+    return productDescriptions.default;
+  };
+
   useEffect(() => {
     async function checkFavorite() {
       try {
@@ -61,12 +80,10 @@ export default function DetailScreen({ route, navigation }) {
     try {
       const docRef = doc(db, 'favorites', product.id.toString());
       if (isFavorite) {
-        // Hapus dari favorit
         await deleteDoc(docRef);
         setIsFavorite(false);
         Alert.alert('Favorit', 'Produk dihapus dari favorit.');
       } else {
-        // Tambah ke favorit
         await setDoc(docRef, {
           productId: product.id,
           name: product.name,
@@ -83,35 +100,22 @@ export default function DetailScreen({ route, navigation }) {
     }
   };
 
-  const openBuyModal = () => {
-    setModalVisible(true);
-  };
-
-  const closeBuyModal = () => {
-    setModalVisible(false);
-    setQuantity('1');
-    setName('');
-    setPhone('');
-    setAddress('');
-  };
-
   const handleConfirmPurchase = async () => {
     const qty = parseInt(quantity);
     if (!qty || qty <= 0) {
-      Alert.alert('Jumlah tidak valid', 'Masukkan jumlah pembelian yang benar.');
+      Alert.alert('Invalid Quantity', 'Please enter a valid quantity.');
       return;
     }
     if (qty > stock) {
-      Alert.alert('Stok Tidak Cukup', `Stok tersedia hanya ${stock} buah.`);
+      Alert.alert('Out of Stock', `Only ${stock} items available.`);
       return;
     }
     if (!name.trim() || !phone.trim() || !address.trim()) {
-      Alert.alert('Form belum lengkap', 'Mohon lengkapi semua data pembeli.');
+      Alert.alert('Incomplete Form', 'Please fill all fields.');
       return;
     }
 
     setLoading(true);
-
     try {
       await addDoc(collection(db, 'purchases'), {
         productId: product.id,
@@ -123,283 +127,346 @@ export default function DetailScreen({ route, navigation }) {
         price: product.price,
         createdAt: serverTimestamp(),
       });
-
       setLoading(false);
-      Alert.alert(
-        'Pembelian Berhasil',
-        `Terima kasih telah membeli ${qty} x ${product.name}!`
-      );
-      closeBuyModal();
+      Alert.alert('Success', `Thank you for purchasing ${qty} x ${product.name}!`);
+      setModalVisible(false);
     } catch (error) {
       setLoading(false);
-      Alert.alert('Error', 'Gagal menyimpan data pembelian, coba lagi.');
-      console.error('Firestore error:', error);
+      Alert.alert('Error', 'Failed to process purchase.');
+      console.error(error);
     }
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-        <Text style={styles.backButtonText}>← Kembali</Text>
-      </TouchableOpacity>
-
-      <Image source={{ uri: product.image }} style={styles.image} />
-
-      <View style={styles.infoContainer}>
-        <Text style={styles.name}>{product.name}</Text>
-        <Text style={styles.price}>{product.price}</Text>
-        <Text style={styles.stock}>{stock > 0 ? `Stok tersedia: ${stock}` : 'Stok habis'}</Text>
-
-        <TouchableOpacity
-          style={[styles.favoriteButton, isFavorite && styles.favoriteActive]}
-          onPress={toggleFavorite}
-        >
-          <Text style={[styles.favoriteText, isFavorite && { color: '#fff' }]}>
-            {isFavorite ? '❤️ Favorit' : '♡ Tambah ke Favorit'}
-          </Text>
+    <View style={styles.container}>
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Ionicons name="arrow-back" size={24} color="#000" />
         </TouchableOpacity>
-
-        <Text style={styles.sectionTitle}>Deskripsi</Text>
-        <Text style={styles.description}>{description}</Text>
-
-        <Text style={styles.sectionTitle}>Review Pembeli</Text>
-        {reviews.map((rev) => (
-          <View key={rev.id} style={styles.reviewBox}>
-            <Text style={styles.reviewUser}>{rev.user}:</Text>
-            <Text style={styles.reviewComment}>{rev.comment}</Text>
-          </View>
-        ))}
-
-        <TouchableOpacity style={styles.buyButton} onPress={openBuyModal}>
-          <Text style={styles.buyButtonText}>Beli Sekarang</Text>
+        <TouchableOpacity onPress={toggleFavorite}>
+          <Ionicons 
+            name={isFavorite ? "heart" : "heart-outline"} 
+            size={24} 
+            color={isFavorite ? "#FF0000" : "#000"} 
+          />
         </TouchableOpacity>
       </View>
 
-      {/* Modal Pembelian */}
+      <ScrollView>
+        {/* Product Image */}
+        <View style={styles.imageContainer}>
+          <Image 
+            source={product.image}
+            style={styles.productImage}
+          />
+        </View>
+
+        {/* Product Info */}
+        <View style={styles.infoContainer}>
+          <Text style={styles.brand}>{product.brand}</Text>
+          <Text style={styles.name}>{product.name}</Text>
+          
+          <View style={styles.priceContainer}>
+            <Text style={styles.price}>{product.price}</Text>
+            {product.originalPrice && (
+              <Text style={styles.originalPrice}>{product.originalPrice}</Text>
+            )}
+          </View>
+
+          {product.isSale && (
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>{product.discount}</Text>
+            </View>
+          )}
+
+          <Text style={styles.sectionTitle}>Description</Text>
+          <Text style={styles.description}>
+            {getProductDescription()}
+          </Text>
+          
+          <View style={styles.detailsRow}>
+            <View style={styles.detailItem}>
+              <Ionicons name="cube-outline" size={20} color="#666" />
+              <Text style={styles.detailText}>Free Shipping</Text>
+            </View>
+            <View style={styles.detailItem}>
+              <Ionicons name="return-down-back-outline" size={20} color="#666" />
+              <Text style={styles.detailText}>30-Day Returns</Text>
+            </View>
+          </View>
+        </View>
+      </ScrollView>
+
+      {/* Fixed Footer */}
+      <View style={styles.footer}>
+        <TouchableOpacity 
+          style={styles.buyButton}
+          onPress={() => setModalVisible(true)}
+        >
+          <Text style={styles.buyButtonText}>ADD TO BAG</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Purchase Modal */}
       <Modal
         visible={modalVisible}
-        animationType="slide"
         transparent
-        onRequestClose={closeBuyModal}
+        animationType="slide"
       >
-        <View style={styles.modalBackground}>
+        <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
-            <Text style={styles.modalTitle}>Form Pembelian</Text>
-            <Text style={styles.modalProductName}>{product.name}</Text>
+            <TouchableOpacity 
+              style={styles.closeButton}
+              onPress={() => setModalVisible(false)}
+            >
+              <Ionicons name="close" size={24} color="#000" />
+            </TouchableOpacity>
 
-            <Text style={styles.modalLabel}>Jumlah Beli:</Text>
+            <Text style={styles.modalTitle}>Complete Your Purchase</Text>
+            
+            <View style={styles.modalProduct}>
+              <Image 
+                source={{ uri: product.image }} 
+                style={styles.modalProductImage}
+              />
+              <View>
+                <Text style={styles.modalProductName}>{product.name}</Text>
+                <Text style={styles.modalProductPrice}>{product.price}</Text>
+              </View>
+            </View>
+
+            <Text style={styles.modalLabel}>Quantity</Text>
             <TextInput
               style={styles.modalInput}
               keyboardType="numeric"
               value={quantity}
               onChangeText={setQuantity}
-              placeholder="Masukkan jumlah"
             />
 
-            <Text style={styles.modalLabel}>Nama Lengkap:</Text>
+            <Text style={styles.modalLabel}>Your Information</Text>
             <TextInput
               style={styles.modalInput}
+              placeholder="Full Name"
               value={name}
               onChangeText={setName}
-              placeholder="Nama pembeli"
             />
-
-            <Text style={styles.modalLabel}>No. Telepon:</Text>
             <TextInput
               style={styles.modalInput}
+              placeholder="Phone Number"
+              keyboardType="phone-pad"
               value={phone}
               onChangeText={setPhone}
-              placeholder="Nomor telepon"
-              keyboardType="phone-pad"
             />
-
-            <Text style={styles.modalLabel}>Alamat Lengkap:</Text>
             <TextInput
-              style={[styles.modalInput, { height: 80 }]}
+              style={[styles.modalInput, styles.multilineInput]}
+              placeholder="Shipping Address"
+              multiline
               value={address}
               onChangeText={setAddress}
-              placeholder="Alamat pengiriman"
-              multiline
             />
 
             {loading ? (
-              <ActivityIndicator size="large" color="#27ae60" style={{ marginTop: 10 }} />
+              <ActivityIndicator size="large" color="#000" />
             ) : (
-              <View style={styles.modalButtonRow}>
-                <TouchableOpacity
-                  style={styles.modalButtonCancel}
-                  onPress={closeBuyModal}
-                  disabled={loading}
-                >
-                  <Text style={styles.modalButtonText}>Batal</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.modalButtonConfirm}
-                  onPress={handleConfirmPurchase}
-                  disabled={loading}
-                >
-                  <Text style={styles.modalButtonText}>Konfirmasi</Text>
-                </TouchableOpacity>
-              </View>
+              <TouchableOpacity 
+                style={styles.modalButton}
+                onPress={handleConfirmPurchase}
+              >
+                <Text style={styles.modalButtonText}>CONFIRM PURCHASE</Text>
+              </TouchableOpacity>
             )}
           </View>
         </View>
       </Modal>
-    </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    padding: 20,
+    flex: 1,
     backgroundColor: '#fff',
   },
-  backButton: {
-    marginBottom: 15,
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    paddingTop: 50,
+    backgroundColor: '#fff',
   },
-  backButtonText: {
-    color: '#3498db',
-    fontSize: 16,
-  },
-  image: {
+  imageContainer: {
     width: '100%',
-    height: 300,
-    borderRadius: 12,
-    resizeMode: 'contain',
-  },
-  infoContainer: {
-    marginTop: 15,
-  },
-  name: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 8,
-    color: '#333',
-  },
-  price: {
-    fontSize: 22,
-    color: '#27ae60',
-    marginBottom: 8,
-  },
-  stock: {
-    fontSize: 16,
-    color: '#555',
-    marginBottom: 15,
-  },
-  favoriteButton: {
-    borderWidth: 1,
-    borderColor: '#3498db',
-    paddingVertical: 10,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  favoriteActive: {
-    backgroundColor: '#3498db',
-  },
-  favoriteText: {
-    fontSize: 16,
-    color: '#3498db',
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    marginBottom: 8,
-    color: '#222',
-  },
-  description: {
-    fontSize: 16,
-    color: '#555',
-    marginBottom: 20,
-    lineHeight: 22,
-  },
-  reviewBox: {
-    backgroundColor: '#f0f4f7',
-    padding: 12,
-    borderRadius: 10,
-    marginBottom: 12,
-  },
-  reviewUser: {
-    fontWeight: 'bold',
-    marginBottom: 4,
-    color: '#333',
-  },
-  reviewComment: {
-    fontSize: 14,
-    color: '#444',
-  },
-  buyButton: {
-    backgroundColor: '#27ae60',
-    paddingVertical: 15,
-    borderRadius: 10,
-    alignItems: 'center',
-    marginTop: 10,
-  },
-  buyButtonText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-
-  // Modal styles
-  modalBackground: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    height: width * 0.8,
+    backgroundColor: '#f8f8f8',
     justifyContent: 'center',
     alignItems: 'center',
   },
-  modalContainer: {
-    width: '85%',
-    backgroundColor: '#fff',
-    borderRadius: 12,
+  productImage: {
+    width: '80%',
+    height: '80%',
+  },
+  infoContainer: {
     padding: 20,
-    elevation: 5,
+    paddingBottom: 100,
   },
-  modalTitle: {
-    fontSize: 22,
+  brand: {
+    fontSize: 14,
+    color: '#888',
+    fontWeight: '600',
+    marginBottom: 4,
+    textTransform: 'uppercase',
+  },
+  name: {
+    fontSize: 24,
+    fontWeight: '500',
+    color: '#000',
+    marginBottom: 12,
+  },
+  priceContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  price: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#000',
+  },
+  originalPrice: {
+    fontSize: 16,
+    color: '#999',
+    marginLeft: 8,
+    textDecorationLine: 'line-through',
+  },
+  badge: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#000',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 4,
+    marginBottom: 20,
+  },
+  badgeText: {
+    color: '#fff',
+    fontSize: 12,
     fontWeight: 'bold',
-    marginBottom: 15,
-    textAlign: 'center',
   },
-  modalProductName: {
+  sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
-    marginBottom: 20,
+    color: '#000',
+    marginBottom: 12,
+  },
+  description: {
+    fontSize: 16,
+    color: '#666',
+    lineHeight: 24,
+    marginBottom: 24,
+  },
+  detailsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 24,
+  },
+  detailItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  detailText: {
+    fontSize: 14,
+    color: '#666',
+    marginLeft: 8,
+  },
+  footer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    padding: 16,
+    backgroundColor: '#fff',
+    borderTopWidth: 1,
+    borderTopColor: '#eee',
+  },
+  buyButton: {
+    backgroundColor: '#000',
+    paddingVertical: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  buyButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContainer: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    padding: 24,
+    paddingBottom: 40,
+  },
+  closeButton: {
+    alignSelf: 'flex-end',
+    marginBottom: 16,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    marginBottom: 24,
     textAlign: 'center',
   },
-  modalLabel: {
+  modalProduct: {
+    flexDirection: 'row',
+    marginBottom: 24,
+  },
+  modalProductImage: {
+    width: 80,
+    height: 80,
+    marginRight: 16,
+  },
+  modalProductName: {
     fontSize: 16,
+    fontWeight: '500',
+    marginBottom: 4,
+  },
+  modalProductPrice: {
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  modalLabel: {
+    fontSize: 14,
+    color: '#666',
     marginBottom: 8,
   },
   modalInput: {
     borderWidth: 1,
     borderColor: '#ddd',
     borderRadius: 8,
-    paddingHorizontal: 15,
-    paddingVertical: 10,
+    padding: 12,
+    marginBottom: 16,
     fontSize: 16,
-    marginBottom: 20,
   },
-  modalButtonRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  multilineInput: {
+    height: 80,
+    textAlignVertical: 'top',
   },
-  modalButtonCancel: {
-    backgroundColor: '#ccc',
-    paddingVertical: 12,
-    paddingHorizontal: 25,
+  modalButton: {
+    backgroundColor: '#000',
+    padding: 16,
     borderRadius: 8,
-  },
-  modalButtonConfirm: {
-    backgroundColor: '#27ae60',
-    paddingVertical: 12,
-    paddingHorizontal: 25,
-    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 8,
   },
   modalButtonText: {
     color: '#fff',
-    fontWeight: '600',
     fontSize: 16,
-    textAlign: 'center',
+    fontWeight: '600',
   },
 });
