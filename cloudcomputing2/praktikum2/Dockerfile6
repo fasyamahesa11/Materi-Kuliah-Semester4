@@ -1,7 +1,0 @@
-FROM ubuntu:20.04
-LABEL maintainer="mahasiswa@gmail.com"
-RUN apt-get update
-WORKDIR /home/coba
-RUN echo "SELAMAT DATANG DI CONTAINER6..." > file3.txt
-COPY folder6 /home/coba/
-CMD ["echo", "ini adalah container5.."]
